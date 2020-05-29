@@ -1,0 +1,6 @@
+{
+  "domain": "amberelectric",
+  "name": "Amber Electricity",
+  "documentation": "https://www.home-assistant.io/integrations/bom",
+  "codeowners": ["@lewisbenge"]
+}
