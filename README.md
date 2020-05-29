@@ -8,12 +8,11 @@ Copy custom_components/amberelectric to your hass data directory (where your con
 
 Add a sensor into your configuration.yaml file that defines the Post Code you want to lookup. 
 
-`
+```yaml
 sensor:
   - platform: amberelectric
     postcode: '2000'
-
-`
+```
 
 # Ideas 
 
