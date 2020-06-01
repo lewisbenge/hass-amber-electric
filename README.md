@@ -13,6 +13,7 @@ sensor:
   - platform: amberelectric
     postcode: '2000'
 ```
+Once deployed, you should see 2 sensors added to your Home Assistant entities list, one reflects the current solar feed-in tarrif, and the second is the real-time grid price charged by Amber (including their network fees). 
 
 # Ideas 
 
