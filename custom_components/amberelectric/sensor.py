@@ -109,7 +109,7 @@ class AmberPricingSensor(Entity):
                entry = {}
                entry["pricing_period_type"] = str(price_entry.period_type)
                entry["pricing_period"] = price_entry.period.strftime("%Y-%m-%d %H:%M:%S")
-               entry["renewalbe_percentage"] = round(float(price_entry.renewables_percentage), 2)
+               entry["renewable_percentage"] = round(float(price_entry.renewables_percentage), 2)
                if(self.sensor_type == CONST_GENRALUSE):
                    entry["price"] =  self.calc_amber_price(self.amber_data.data.static_prices.e1.totalfixed_kwh_price,self.amber_data.data.static_prices.e1.loss_factor,price_entry.wholesale_kwh_price) 
                if(self.sensor_type == CONST_SOLARFIT):
