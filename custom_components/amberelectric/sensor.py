@@ -14,7 +14,7 @@ import base64
 import logging
 
 
-SCAN_INTERVAL = timedelta(minutes=5)
+SCAN_INTERVAL = timedelta(minutes=15)
 URL = "https://api.amberelectric.com.au/prices/listprices"
 UNIT_NAME = "c/kWh"
 CONF_POSTCODE = "postcode"
@@ -107,7 +107,7 @@ class AmberPricingSensor(Entity):
            data[ATTR_PRICE_FORCECAST] = future_pricing
            for price_entry in self.amber_data.data.variable_prices_and_renewables:
                entry = {}
-               entry["pricing_period_type"] = str(price_entry.period_type)
+               entry["pricing_period_type"] = str(price_entry.period_type.value)
                entry["pricing_period"] = price_entry.period.strftime("%Y-%m-%d %H:%M:%S")
                entry["renewable_percentage"] = round(float(price_entry.renewables_percentage), 2)
                if(self.sensor_type == CONST_GENRALUSE):
