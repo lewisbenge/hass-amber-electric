@@ -234,10 +234,18 @@ class StaticPrices:
     @staticmethod
     def from_dict(obj: Any) -> "StaticPrices":
         assert isinstance(obj, dict)
-        e1 = B1.from_dict(obj.get("E1"))
-        e2 = B1.from_dict(obj.get("E2"))
-        b1 = B1.from_dict(obj.get("B1"))
-        e1_tou = B1.from_dict(obj.get("E1TOU"))
+        E1 = None
+        if(obj.get("E1")):
+            e1 = B1.from_dict(obj.get("E1"))
+        E2 = None
+        if(obj.get("E2")):
+            e2 = B1.from_dict(obj.get("E2"))
+        b1 = None
+        if(obj.get("B1")):
+            b1 = B1.from_dict(obj.get("B1"))
+        e1_tou = None
+        if(obj.get("E1TOU")):
+            e1_tou = B1.from_dict(obj.get("E1TOU"))
         return StaticPrices(e1, e2, b1, e1_tou)
 
     def to_dict(self) -> dict:
@@ -258,17 +266,12 @@ class PeriodType(Enum):
     ACTUAL = "ACTUAL"
     FORECAST = "FORECAST"
 
-
-class Region(Enum):
-    NSW1 = "NSW1"
-
-
 class VariablePricesAndRenewable:
     period_type: PeriodType
     created_at: datetime
     wholesale_kwh_price: str
     usage: Optional[str]
-    region: Region
+    region: str
     period: datetime
     renewables_percentage: str
     period_source: PeriodSource
@@ -283,7 +286,7 @@ class VariablePricesAndRenewable:
         created_at: datetime,
         wholesale_kwh_price: str,
         usage: Optional[str],
-        region: Region,
+        region: str,
         period: datetime,
         renewables_percentage: str,
         period_source: PeriodSource,
@@ -312,7 +315,7 @@ class VariablePricesAndRenewable:
         created_at = from_datetime(obj.get("createdAt"))
         wholesale_kwh_price = from_str(obj.get("wholesaleKWHPrice"))
         usage = from_union([from_str, from_none], obj.get("usage"))
-        region = Region(obj.get("region"))
+        region = from_str(obj.get("region"))
         period = from_datetime(obj.get("period"))
         renewables_percentage = from_str(obj.get("renewablesPercentage"))
         period_source = PeriodSource(obj.get("periodSource"))
