@@ -41,8 +41,8 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     if(postcode):
         add_entities(
             [
-                AmberPricingSensor(amber_data, postcode, CONST_SOLARFIT, "Amber solar feed in tariff"),
-                AmberPricingSensor(amber_data, postcode, CONST_GENRALUSE, "Amber general usage price")
+                AmberPricingSensor(amber_data, postcode, CONST_SOLARFIT, "Amber solar feed in tariff", "mdi:solar-power"),
+                AmberPricingSensor(amber_data, postcode, CONST_GENRALUSE, "Amber general usage price", "mdi:transmission-tower")
             ]
         )
 
@@ -50,13 +50,19 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 class AmberPricingSensor(Entity):
     """ Entity object for Amber Electric sensor."""
 
-    def __init__(self, amber_data, postcode, sensor_type, friendly_name) :
+    def __init__(self, amber_data, postcode, sensor_type, friendly_name, icon) :
         self.postcode = postcode
         self.amber_data = amber_data
         self.price_updated_datetime = None
         self.network_provider = None
         self.sensor_type = sensor_type
         self.friendly_name = friendly_name
+        self.icon = icon
+
+    @property
+    def icon(self):
+        """Return the icon of the sensor."""
+        return self.icon
 
     @property
     def name(self):
@@ -118,6 +124,7 @@ class AmberPricingSensor(Entity):
         """Return the unit of measurement of this entity, if any."""
         return UNIT_NAME
 
+    @Throttle(SCAN_INTERVAL)
     def update(self):
         """Get the Amber Electric data from the REST API"""
         response = requests.post(URL, '{"postcode":"' + self.postcode + '"}')
