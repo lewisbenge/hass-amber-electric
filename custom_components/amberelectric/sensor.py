@@ -57,12 +57,12 @@ class AmberPricingSensor(Entity):
         self.network_provider = None
         self.sensor_type = sensor_type
         self.friendly_name = friendly_name
-        self.icon = icon
+        self.icon_uri = icon
 
     @property
     def icon(self):
         """Return the icon of the sensor."""
-        return self.icon
+        return self.icon_uri
 
     @property
     def name(self):
