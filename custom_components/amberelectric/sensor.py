@@ -77,24 +77,14 @@ class AmberPricingSensor(Entity):
             return 0
 
         if(self.sensor_type == CONST_GENRALUSE):
-            return self.calc_amber_price(self.amber_data.data.variable_prices_and_renewables[
+            return self.calc_amber_price(self.amber_data.data.static_prices.e1.totalfixed_kwh_price,self.amber_data.data.static_prices.e1.loss_factor,self.amber_data.data.variable_prices_and_renewables[
                             0
                         ].wholesale_kwh_price)
         if(self.sensor_type == CONST_SOLARFIT):
             ## Solar FIT
-            return round(
-                abs((
-                    float(self.amber_data.data.static_prices.b1.totalfixed_kwh_price)
-                    + float(self.amber_data.data.static_prices.b1.loss_factor)
-                    * float(
-                        self.amber_data.data.variable_prices_and_renewables[
+            return abs(self.calc_amber_price(self.amber_data.data.static_prices.b1.totalfixed_kwh_price,self.amber_data.data.static_prices.b1.loss_factor,self.amber_data.data.variable_prices_and_renewables[
                             0
-                        ].wholesale_kwh_price
-                    )
-                )
-                / 1.1),
-                2,
-            )
+                        ].wholesale_kwh_price))         
         
         return 0
 
@@ -104,6 +94,14 @@ class AmberPricingSensor(Entity):
 
        data = {} 
        
+       data[ATTR_ATTRIBUTION] = ATTRIBUTION
+       now = datetime.datetime.now()
+       data[ATTR_SENSOR_ID] = self.sensor_type
+       data[ATTR_LAST_UPDATE]= now.strftime("%Y-%m-%d %H:%M:%S")
+       data[ATTR_GRID_NAME] =self.network_provider
+       data[ATTR_POSTCODE]= self.postcode
+
+
        if (self.amber_data is not None):
            future_pricing = []
            data[ATTR_PRICE_FORCECAST] = future_pricing
@@ -112,30 +110,25 @@ class AmberPricingSensor(Entity):
                entry["pricing_period_type"] = str(price_entry.period_type)
                entry["pricing_period"] = price_entry.period.strftime("%Y-%m-%d %H:%M:%S")
                entry["renewalbe_percentage"] = round(float(price_entry.renewables_percentage), 2)
-               entry["price"] =  self.calc_amber_price(price_entry.wholesale_kwh_price) 
-               
+               if(self.sensor_type == CONST_GENRALUSE):
+                   entry["price"] =  self.calc_amber_price(self.amber_data.data.static_prices.e1.totalfixed_kwh_price,self.amber_data.data.static_prices.e1.loss_factor,price_entry.wholesale_kwh_price) 
+               if(self.sensor_type == CONST_SOLARFIT):
+                    entry["price"] =  self.calc_amber_price(self.amber_data.data.static_prices.b1.totalfixed_kwh_price,self.amber_data.data.static_prices.b1.loss_factor,price_entry.wholesale_kwh_price) 
                future_pricing.append(entry)
  
-       data[ATTR_ATTRIBUTION] = ATTRIBUTION
-       now = datetime.datetime.now()
-       data[ATTR_SENSOR_ID] = self.sensor_type
-       data[ATTR_LAST_UPDATE]= now.strftime("%Y-%m-%d %H:%M:%S")
-       data[ATTR_GRID_NAME] =self.network_provider
-       data[ATTR_POSTCODE]= self.postcode
+  
        return data
                 
             
        
 
 
-    def calc_amber_price(self, variable_price):
+    def calc_amber_price(self,fixed_price, loss_factor, variable_price):
         return round(
                 (
-                    float(self.amber_data.data.static_prices.e1.totalfixed_kwh_price)
-                    + float(self.amber_data.data.static_prices.e1.loss_factor)
-                    * float(
-                        variable_price
-                    )
+                    float(fixed_price)
+                    + float(loss_factor)
+                    * float( variable_price)
                 )
                 / 1.1,
                 2,
