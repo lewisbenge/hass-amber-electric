@@ -5,6 +5,7 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 import homeassistant.util.dt as dt_util
 import voluptuous as vol
+import datetime
 from .ambermodel import AmberData
 import requests
 import json
@@ -21,9 +22,9 @@ CONF_POSTCODE = "postcode"
 ATTRIBUTION = "Data provided by the Amber Electric pricing API"
 ATTR_LAST_UPDATE = "last_update"
 ATTR_SENSOR_ID = "sensor_id"
-ATTR_POSTCODE_ID = "postcode_id"
+ATTR_POSTCODE = "postcode"
 ATTR_GRID_NAME = "grid_name"
-
+ATTR_PRICE_FORCECAST = "price_forcecast"
 CONST_SOLARFIT = "amberSolarFIT"
 CONST_GENRALUSE = "amberGeneralUsage"
 
@@ -76,19 +77,9 @@ class AmberPricingSensor(Entity):
             return 0
 
         if(self.sensor_type == CONST_GENRALUSE):
-            return round(
-                (
-                    float(self.amber_data.data.static_prices.e1.totalfixed_kwh_price)
-                    + float(self.amber_data.data.static_prices.e1.loss_factor)
-                    * float(
-                        self.amber_data.data.variable_prices_and_renewables[
+            return self.calc_amber_price(self.amber_data.data.variable_prices_and_renewables[
                             0
-                        ].wholesale_kwh_price
-                    )
-                )
-                / 1.1,
-                2,
-            )
+                        ].wholesale_kwh_price)
         if(self.sensor_type == CONST_SOLARFIT):
             ## Solar FIT
             return round(
@@ -107,24 +98,55 @@ class AmberPricingSensor(Entity):
         
         return 0
 
+
     @property
     def device_state_attributes(self):
-        attr = {
-            ATTR_ATTRIBUTION: ATTRIBUTION,
-            ATTR_LAST_UPDATE: self.price_updated_datetime,
-            ATTR_SENSOR_ID:  self.sensor_type,
-            ATTR_GRID_NAME: self.network_provider,
-            ATTR_POSTCODE_ID: self.postcode,
-        }
 
-        return attr
+       data = {} 
+       
+       if (self.amber_data is not None):
+           future_pricing = []
+           data[ATTR_PRICE_FORCECAST] = future_pricing
+           for price_entry in self.amber_data.data.variable_prices_and_renewables:
+               entry = {}
+               entry["pricing_period_type"] = str(price_entry.period_type)
+               entry["pricing_period"] = price_entry.period.strftime("%Y-%m-%d %H:%M:%S")
+               entry["renewalbe_percentage"] = round(float(price_entry.renewables_percentage), 2)
+               entry["price"] =  self.calc_amber_price(price_entry.wholesale_kwh_price) 
+               
+               future_pricing.append(entry)
+ 
+       data[ATTR_ATTRIBUTION] = ATTRIBUTION
+       now = datetime.datetime.now()
+       data[ATTR_SENSOR_ID] = self.sensor_type
+       data[ATTR_LAST_UPDATE]= now.strftime("%Y-%m-%d %H:%M:%S")
+       data[ATTR_GRID_NAME] =self.network_provider
+       data[ATTR_POSTCODE]= self.postcode
+       return data
+                
+            
+       
+
+
+    def calc_amber_price(self, variable_price):
+        return round(
+                (
+                    float(self.amber_data.data.static_prices.e1.totalfixed_kwh_price)
+                    + float(self.amber_data.data.static_prices.e1.loss_factor)
+                    * float(
+                        variable_price
+                    )
+                )
+                / 1.1,
+                2,
+            )
 
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
         return UNIT_NAME
 
-    @Throttle(SCAN_INTERVAL)
+    #@Throttle(SCAN_INTERVAL)
     def update(self):
         """Get the Amber Electric data from the REST API"""
         response = requests.post(URL, '{"postcode":"' + self.postcode + '"}')
