@@ -139,7 +139,7 @@ class AmberPricingSensor(Entity):
         """Return the unit of measurement of this entity, if any."""
         return UNIT_NAME
 
-    #@Throttle(SCAN_INTERVAL)
+    @Throttle(SCAN_INTERVAL)
     def update(self):
         """Get the Amber Electric data from the REST API"""
         response = requests.post(URL, '{"postcode":"' + self.postcode + '"}')
