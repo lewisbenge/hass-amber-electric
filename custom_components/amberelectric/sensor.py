@@ -113,7 +113,7 @@ class AmberPricingSensor(Entity):
                if(self.sensor_type == CONST_GENRALUSE):
                    entry["price"] =  self.calc_amber_price(self.amber_data.data.static_prices.e1.totalfixed_kwh_price,self.amber_data.data.static_prices.e1.loss_factor,price_entry.wholesale_kwh_price) 
                if(self.sensor_type == CONST_SOLARFIT):
-                    entry["price"] =  self.calc_amber_price(self.amber_data.data.static_prices.b1.totalfixed_kwh_price,self.amber_data.data.static_prices.b1.loss_factor,price_entry.wholesale_kwh_price) 
+                    entry["price"] =  abs(self.calc_amber_price(self.amber_data.data.static_prices.b1.totalfixed_kwh_price,self.amber_data.data.static_prices.b1.loss_factor,price_entry.wholesale_kwh_price)) 
                future_pricing.append(entry)
  
   
