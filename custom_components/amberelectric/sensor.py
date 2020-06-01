@@ -12,17 +12,20 @@ from datetime import timedelta
 import base64
 import logging
 
-FRIENDLY_NAME = "Amber Electric Prices"
+
 SCAN_INTERVAL = timedelta(minutes=5)
 URL = "https://api.amberelectric.com.au/prices/listprices"
 UNIT_NAME = "c/kWh"
 CONF_POSTCODE = "postcode"
 
-ATTRIBUTION = "Data provided by the Amber Electricity pricing API"
+ATTRIBUTION = "Data provided by the Amber Electric pricing API"
 ATTR_LAST_UPDATE = "last_update"
 ATTR_SENSOR_ID = "sensor_id"
 ATTR_POSTCODE_ID = "postcode_id"
 ATTR_GRID_NAME = "grid_name"
+
+CONST_SOLARFIT = "amberSolarFIT"
+CONST_GENRALUSE = "amberGeneralUsage"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,28 +37,31 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 def setup_platform(hass, config, add_entities, discovery_info=None):
 
     postcode = config.get(CONF_POSTCODE)
-
-    if not postcode:
-        postcode = "2000"
-
     amber_data = None
-
-    add_entities([AmberPricingSensor(amber_data, postcode)])
+    if(postcode):
+        add_entities(
+            [
+                AmberPricingSensor(amber_data, postcode, CONST_SOLARFIT, "Amber solar feed in tariff"),
+                AmberPricingSensor(amber_data, postcode, CONST_GENRALUSE, "Amber general usage price")
+            ]
+        )
 
 
 class AmberPricingSensor(Entity):
     """ Entity object for Amber Electric sensor."""
 
-    def __init__(self, amber_data, postcode):
+    def __init__(self, amber_data, postcode, sensor_type, friendly_name) :
         self.postcode = postcode
         self.amber_data = amber_data
         self.price_updated_datetime = None
         self.network_provider = None
+        self.sensor_type = sensor_type
+        self.friendly_name = friendly_name
 
     @property
     def name(self):
         """Return the name of the sensor."""
-        return FRIENDLY_NAME
+        return self.friendly_name
 
     @property
     def state(self):
@@ -63,41 +69,44 @@ class AmberPricingSensor(Entity):
         if self.amber_data is None:
             return 0
 
-        return round(
-            (
-                float(self.amber_data.data.static_prices.e1.totalfixed_kwh_price)
-                + float(self.amber_data.data.static_prices.e1.loss_factor)
-                * float(
-                    self.amber_data.data.variable_prices_and_renewables[
-                        0
-                    ].wholesale_kwh_price
+        if(self.sensor_type == CONST_GENRALUSE):
+            return round(
+                (
+                    float(self.amber_data.data.static_prices.e1.totalfixed_kwh_price)
+                    + float(self.amber_data.data.static_prices.e1.loss_factor)
+                    * float(
+                        self.amber_data.data.variable_prices_and_renewables[
+                            0
+                        ].wholesale_kwh_price
+                    )
                 )
+                / 1.1,
+                2,
             )
-            / 1.1,
-            2,
-        )
-
-        ## Solar FIT
-        round(
-            (
-                float(self.amber_data.data.static_prices.b1.totalfixed_kwh_price)
-                + float(self.amber_data.data.static_prices.b1.loss_factor)
-                * float(
-                    self.amber_data.data.variable_prices_and_renewables[
-                        0
-                    ].wholesale_kwh_price
+        if(self.sensor_type == CONST_SOLARFIT):
+            ## Solar FIT
+            return round(
+                abs((
+                    float(self.amber_data.data.static_prices.b1.totalfixed_kwh_price)
+                    + float(self.amber_data.data.static_prices.b1.loss_factor)
+                    * float(
+                        self.amber_data.data.variable_prices_and_renewables[
+                            0
+                        ].wholesale_kwh_price
+                    )
                 )
+                / 1.1),
+                2,
             )
-            / 1.1,
-            2,
-        )
+        
+        return 0
 
     @property
     def device_state_attributes(self):
         attr = {
             ATTR_ATTRIBUTION: ATTRIBUTION,
             ATTR_LAST_UPDATE: self.price_updated_datetime,
-            ATTR_SENSOR_ID: self.base64encode(self.postcode),
+            ATTR_SENSOR_ID:  self.sensor_type,
             ATTR_GRID_NAME: self.network_provider,
             ATTR_POSTCODE_ID: self.postcode,
         }
@@ -121,7 +130,4 @@ class AmberPricingSensor(Entity):
             ].created_at
             self.network_provider = self.amber_data.data.network_provider
 
-    def base64encode(self, s: str) -> str:
-        message_bytes = s.encode("ascii")
-        base64_bytes = base64.b64encode(message_bytes)
-        return base64_bytes.decode("ascii")
+  
