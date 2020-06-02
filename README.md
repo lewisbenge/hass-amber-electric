@@ -26,6 +26,12 @@ The following example uses a template to return the prices based on most expense
 {{price_forecast['pricing_period']}}: {{price_forecast['price']}}
 {%- endfor -%}
 ```
+To get a mean value for the next 12 hours (so you can look at price change to determine increases), you can leverage a template such as this:
+
+```python
+{% set mean__price_value = (states.sensor.amber_general_usage_price.attributes["price_forcecast"] | sum(attribute='price')) /states.sensor.amber_general_usage_price.attributes["price_forcecast"] | length()   %}
+{{mean_price_value}}
+```
 
 Typically within a template you want to return a single value, to this example would need to be tailored to your specific use-case. You can experiment with Templates in the Developer Tools section of your Home Assistant portal.
 
