@@ -125,12 +125,10 @@ class AmberPricingSensor(Entity):
 
     def calc_amber_price(self,fixed_price, loss_factor, variable_price):
         return round(
-                (
                     float(fixed_price)
                     + float(loss_factor)
-                    * float( variable_price)
-                )
-                / 1.1,
+                    * float( variable_price)                
+                ,
                 2,
             )
 
