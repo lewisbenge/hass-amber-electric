@@ -77,12 +77,12 @@ class AmberPricingSensor(Entity):
             return 0
 
         if(self.sensor_type == CONST_GENRALUSE):
-            return self.calc_amber_price(self.amber_data.data.static_prices.e1.totalfixed_kwh_price,self.amber_data.data.static_prices.e1.loss_factor,self.amber_data.data.variable_prices_and_renewables[
+            return self.calc_amber_price(self.amber_data.data.static_prices.e1.totalfixed_kwh_price,self.amber_data.data.static_prices.e1.loss_factor,self.current_prices[
                             0
                         ].wholesale_kwh_price)
         if(self.sensor_type == CONST_SOLARFIT):
             ## Solar FIT
-            return abs(self.calc_amber_price(self.amber_data.data.static_prices.b1.totalfixed_kwh_price,self.amber_data.data.static_prices.b1.loss_factor,self.amber_data.data.variable_prices_and_renewables[
+            return abs(self.calc_amber_price(self.amber_data.data.static_prices.b1.totalfixed_kwh_price,self.amber_data.data.static_prices.b1.loss_factor,self.current_prices[
                             0
                         ].wholesale_kwh_price))         
         
@@ -105,7 +105,7 @@ class AmberPricingSensor(Entity):
        if (self.amber_data is not None):
            future_pricing = []
            data[ATTR_PRICE_FORCECAST] = future_pricing
-           for price_entry in self.amber_data.data.variable_prices_and_renewables:
+           for price_entry in self.current_prices:
                entry = {}
                entry["pricing_period_type"] = str(price_entry.period_type.value)
                entry["pricing_period"] = price_entry.period.strftime("%Y-%m-%d %H:%M:%S")
@@ -120,7 +120,18 @@ class AmberPricingSensor(Entity):
        return data
                 
             
-       
+    def get_current_prices(self, current_values):
+        future_pricing = []
+        if (current_values is not None):
+            last_value = None
+            for value in current_values:
+               if(value.period > datetime.datetime.now()):
+                    if not future_pricing:
+                        future_pricing.append(last_value)
+                    future_pricing.append(value)
+                
+               last_value = value    
+        return future_pricing
 
 
     def calc_amber_price(self,fixed_price, loss_factor, variable_price):
@@ -149,5 +160,6 @@ class AmberPricingSensor(Entity):
                 0
             ].created_at
             self.network_provider = self.amber_data.data.network_provider
+            self.current_prices = self.get_current_prices(self.amber_data.data.variable_prices_and_renewables)
 
   
