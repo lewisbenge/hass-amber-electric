@@ -59,6 +59,7 @@ class AmberPricingSensor(Entity):
         self.sensor_type = sensor_type
         self.friendly_name = friendly_name
         self.icon_uri = icon
+        self.update()
 
     @property
     def icon(self):
