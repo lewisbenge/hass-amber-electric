@@ -89,7 +89,6 @@ class AmberPricingSensor(Entity):
         current_price = list(filter(
             lambda price: price.period_type == PeriodType.ACTUAL and price.period_source == PeriodSource.THE_5_MIN, self.current_prices))
 
-        _LOGGER.warn(current_price)
         if(self.sensor_type == CONST_GENRALUSE):
 
             return self.calc_amber_price(self.amber_data.data.static_prices.e1.totalfixed_kwh_price, self.amber_data.data.static_prices.e1.loss_factor, current_price[0].wholesale_kwh_price)
