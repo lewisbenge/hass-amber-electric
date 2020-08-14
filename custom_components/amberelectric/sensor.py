@@ -14,7 +14,7 @@ import base64
 import logging
 
 
-SCAN_INTERVAL = timedelta(minutes=15)
+SCAN_INTERVAL = timedelta(minutes=5)
 URL = "https://api.amberelectric.com.au/prices/listprices"
 UNIT_NAME = "c/kWh"
 CONF_POSTCODE = "postcode"
