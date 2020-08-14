@@ -86,8 +86,11 @@ class AmberPricingSensor(Entity):
         if self.amber_data is None:
             return 0
 
+        now = datetime.datetime.now()
+        current_period = now + (datetime.datetime.min -
+                                now) % timedelta(minutes=30)
         current_price = list(filter(
-            lambda price: price.period_type == PeriodType.ACTUAL and price.period_source == PeriodSource.THE_5_MIN, self.current_prices))
+            lambda price: price.period_type == PeriodType.ACTUAL and price.period == current_period, self.current_prices))
 
         if(self.sensor_type == CONST_GENRALUSE):
 
