@@ -6,7 +6,7 @@ from homeassistant.util import Throttle
 import homeassistant.util.dt as dt_util
 import voluptuous as vol
 import datetime
-from .ambermodel import AmberData
+from .ambermodel import AmberData, PeriodType, PeriodSource
 import requests
 import json
 from datetime import timedelta
@@ -86,19 +86,20 @@ class AmberPricingSensor(Entity):
         if self.amber_data is None:
             return 0
 
+        current_price = list(filter(
+            lambda price: price.period_type == PeriodType.ACTUAL and price.period_source == PeriodSource.THE_5_MIN, self.current_prices))
+
+        _LOGGER.warn(current_price)
         if(self.sensor_type == CONST_GENRALUSE):
-            return self.calc_amber_price(self.amber_data.data.static_prices.e1.totalfixed_kwh_price, self.amber_data.data.static_prices.e1.loss_factor, self.current_prices[
-                0
-            ].wholesale_kwh_price)
+
+            return self.calc_amber_price(self.amber_data.data.static_prices.e1.totalfixed_kwh_price, self.amber_data.data.static_prices.e1.loss_factor, current_price[0].wholesale_kwh_price)
         if(self.sensor_type == CONST_SOLARFIT):
             # Solar FIT
-            return abs(self.calc_amber_price(self.amber_data.data.static_prices.b1.totalfixed_kwh_price, self.amber_data.data.static_prices.b1.loss_factor, self.current_prices[
-                0
-            ].wholesale_kwh_price))
+            return abs(self.calc_amber_price(self.amber_data.data.static_prices.b1.totalfixed_kwh_price, self.amber_data.data.static_prices.b1.loss_factor, current_price[0].wholesale_kwh_price))
 
         return 0
 
-    @property
+    @ property
     def device_state_attributes(self):
 
         data = {}
@@ -152,12 +153,12 @@ class AmberPricingSensor(Entity):
             2,
         )
 
-    @property
+    @ property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
         return UNIT_NAME
 
-    @Throttle(SCAN_INTERVAL)
+    @ Throttle(SCAN_INTERVAL)
     def update(self):
         """Get the Amber Electric data from the REST API"""
         params = {"postcode": self.postcode}
