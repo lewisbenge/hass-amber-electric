@@ -4,7 +4,7 @@ A custom component for Home Assistant (www.home-assistant.io) to pull the latest
 
 # How to install
 
-Copy custom_components/amberelectric to your hass data directory (where your configuration.yaml lives). It should go into the same directory structure (YOUR_CONFIG_DIRECTORY/custom_components/amberelectric)
+Copy custom_components/amberelectric to your hass data directory (where your configuration.yaml lives). It should go into the same directory structure (`YOUR_CONFIG_DIRECTORY/custom_components/amberelectric`)
 
 Add a sensor into your configuration.yaml file that defines the Post Code you want to lookup.
 
@@ -41,11 +41,10 @@ Typically within a template you want to return a single value, to this example w
 
 Some postcodes have multiple power distributors, and the API will return the primary one. If you are on the secondary one, your numbers may be out. To do that, you can change the network name in the config
 sensor:
-
+```yaml
 - platform: amberelectric
   postcode: '3000'
   network_name: 'Jemena'
-
 ```
 
 The [Australian Energy Regulator](https://www.aer.gov.au/consumers/who-is-my-distributor) has more information about finding out who your distributor is.
@@ -53,4 +52,3 @@ The [Australian Energy Regulator](https://www.aer.gov.au/consumers/who-is-my-dis
 # Ideas
 
 This project is early in it's creation. If you have ideas on how you want to use the Amber real-time data inside Home Assistant please let me know and I'll try my best to update to code to reflect the various use-cases.
-```
