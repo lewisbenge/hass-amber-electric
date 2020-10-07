@@ -112,7 +112,7 @@ class AmberPricingSensor(Entity):
         if (self.amber_data is not None):
             future_pricing = []
             data[ATTR_PRICE_FORCECAST] = future_pricing
-            for price_entry in self.current_prices:
+            for price_entry in list(filter(lambda price: price.period_type == PeriodType.FORECAST, self.amber_data.data.variable_prices_and_renewables)):
                 entry = {}
                 entry["pricing_period_type"] = str(
                     price_entry.period_type.value)
