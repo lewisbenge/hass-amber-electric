@@ -90,7 +90,7 @@ class AmberPricingSensor(Entity):
         current_period = now + (datetime.datetime.min -
                                 now) % timedelta(minutes=30)
         current_price = list(filter(
-            lambda price: price.period_type == PeriodType.ACTUAL and price.latest_period is not None, amber_data.data.variable_prices_and_renewables))
+            lambda price: price.period_type == PeriodType.ACTUAL and price.latest_period is not None, self.amber_data.data.variable_prices_and_renewables))
 
         if(self.sensor_type == CONST_GENRALUSE):
             return self.calc_amber_price(self.amber_data.data.static_prices.e1.totalfixed_kwh_price, self.amber_data.data.static_prices.e1.loss_factor, current_price[0].wholesale_kwh_price)
