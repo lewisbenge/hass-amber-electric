@@ -53,7 +53,8 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
                                    "Amber solar feed in tariff", "mdi:solar-power"),
                 AmberPricingSensor(amber_data, postcode, network_name, CONST_GENRALUSE,
                                    "Amber general usage price", "mdi:transmission-tower"),
-                Am
+                AmberPricingSensor(amber_data, postcode, network_name, CONST_CONTROLLOAD,
+                                   "Amber controlled load price", "mdi:water-boiler")
             ]
         )
 
@@ -93,10 +94,12 @@ class AmberPricingSensor(Entity):
 
         if(self.sensor_type == CONST_GENRALUSE):
             return self.calc_amber_price(self.amber_data.data.static_prices.e1.totalfixed_kwh_price, self.amber_data.data.static_prices.e1.loss_factor, current_price[len(current_price)-1].wholesale_kwh_price)
-        if(self.sensor_type == CONST_SOLARFIT):
-            # Solar FIT
+        if(self.sensor_type == CONST_SOLARFIT):      
             return self.calc_amber_price(self.amber_data.data.static_prices.b1.totalfixed_kwh_price, self.amber_data.data.static_prices.b1.loss_factor, current_price[len(current_price)-1].wholesale_kwh_price)
-
+        if(self.sensor_type == CONST_CONTROLLOAD):
+            if(self.amber_data.data.static_prices.e2.totalfixed_kwh_price is not None):
+                return round(float(self.amber_data.data.static_prices.e2.totalfixed_kwh_price),2)
+           
         return 0
 
     @ property
