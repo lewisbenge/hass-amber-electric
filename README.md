@@ -16,7 +16,7 @@ sensor:
 
 Once deployed, you should see 2 sensors added to your Home Assistant entities list, one reflects the current solar feed-in tarrif, and the second is the real-time grid price charged by Amber (including their network fees).
 
-#Analysing Price Predictions
+# Analysing Price Predictions
 
 The 12 hour price predictions from Amber for both solar FiT and grid usage are available as an attribute of the sensor. To use this data-set in automation or scenes, it is best to return the array using a template to achieve what you need.
 
